@@ -73,18 +73,10 @@ def message_handler(message):
                     messages=messages
                 )
                 bot.send_message(chat_id=message.chat.id, text=response["choices"][0]['message']['content'])
+                s = open("log.txt", "a")
+                s.write(str(message.chat.id) + " - " + message.text + " - " + str(Actions.ACTION_REWRITE) + "\n")
+                s.close()
 
-                with connect(
-                        host=HOST,
-                        user=USER,
-                        password=PASSWORD
-                ) as connection_task:
-                    with connection_task.cursor() as cursor_task:
-                        cursor_task.execute(f'INSERT INTO `gpt_db`.`tasks` (task_text, task_type, user_id)'
-                                            f'VALUES ("{message.text}", '
-                                            f'"{Actions.ACTION_GENERATE}", '
-                                            f'"{message.chat.id}")')
-                        connection_task.commit()
         elif users[message.chat.id] == Actions.ACTION_REWRITE:
             if len(message.text.split()) > 500:
                 bot.send_message(chat_id=message.chat.id, text="Превышен лимит слов в запросе")
@@ -98,38 +90,15 @@ def message_handler(message):
                     messages=messages
                 )
                 bot.send_message(chat_id=message.chat.id, text=response["choices"][0]['message']['content'])
+                s = open("log.txt", "a")
+                s.write(str(message.chat.id) + " - " + message.text + " - " + str(Actions.ACTION_REWRITE) + "\n")
+                s.close()
 
-                with connect(
-                        host=HOST,
-                        user=USER,
-                        password=PASSWORD
-                ) as connection_task:
-                    with connection_task.cursor() as cursor_task:
-                        cursor_task.execute(f'INSERT INTO `gpt_db`.`tasks` (task_text, task_type, user_id)'
-                                            f'VALUES ("{message.text}", '
-                                            f'"{Actions.ACTION_REWRITE}", '
-                                            f'"{message.chat.id}")')
-                        connection_task.commit()
+
         else:
             bot.send_message(message.chat.id, "Неверный запрос")
 
 
 if __name__ == "__main__":
-    with connect(
-            host=HOST,
-            user=USER,
-            password=PASSWORD
-    ) as connection:
-        create_db_query = "CREATE DATABASE IF NOT EXISTS gpt_db"
-        with connection.cursor() as cursor:
-            create_table = """CREATE TABLE IF NOT EXISTS `gpt_db`.`tasks` (
-      `id` INT NOT NULL AUTO_INCREMENT,
-      `task_text` TEXT NOT NULL,
-      `task_type` TEXT NOT NULL,
-      `user_id` TEXT NOT NULL,
-      PRIMARY KEY (`id`));"""
-            cursor.execute(create_db_query)
-            cursor.execute(create_table)
-            connection.commit()
 
     bot.infinity_polling()
