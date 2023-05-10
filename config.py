@@ -1,5 +1,5 @@
 TOKEN = "6171641343:AAFX1lTFbjdUEFPd1YiJ58gu9iXgavVv15s"
-GPT_API_KEY = "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"
+GPT_API_KEY = "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"
 
 HOST = "localhost"
 USER = "root"

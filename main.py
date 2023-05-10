@@ -32,7 +32,10 @@ def start(message):
     ]
 
     markup.add(*items, row_width=2)
-    bot.send_message(chat_id=message.chat.id, text="Выберите действие", reply_markup=markup)
+    bot.send_message(chat_id=message.chat.id, text="Добро пожаловать в чат-бот 'Dobby.GPT'.  "
+                                                   "Я умею создавать красивые тексты и обладаю"
+                                                   " способностью перефразировать существующие",
+                     reply_markup=markup)
 
     users[message.chat.id] = None
 
@@ -65,6 +68,8 @@ def message_handler(message):
             if len(message.text.split()) > 100:
                 bot.send_message(chat_id=message.chat.id, text="Превышен лимит слов в запросе")
             else:
+                bot.send_message(message.chat.id, text="Ваш запрос обрабатывается. Ориентировочное время ответа"
+                                                       " до 60 секунд")
                 messages = [{"role": "user", "content": f"Сгенерируй текст из слов: {message.text}"}]
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
@@ -81,6 +86,8 @@ def message_handler(message):
             if len(message.text.split()) > 500:
                 bot.send_message(chat_id=message.chat.id, text="Превышен лимит слов в запросе")
             else:
+                bot.send_message(message.chat.id, text="Ваш запрос обрабатывается. Ориентировочное время ответа"
+                                                       " до 60 секунд")
                 messages = [{"role": "user", "content": f"Перефразировать текст из слов и заменить синонимами: "
                                                         f"{message.text}"}]
                 response = openai.ChatCompletion.create(
@@ -100,5 +107,4 @@ def message_handler(message):
 
 
 if __name__ == "__main__":
-
     bot.infinity_polling()
