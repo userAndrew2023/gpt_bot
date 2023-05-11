@@ -1,5 +1,7 @@
+import os
+
 TOKEN = "6171641343:AAFX1lTFbjdUEFPd1YiJ58gu9iXgavVv15s"
-GPT_API_KEY = "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"
+GPT_API_KEY = os.environ.get("OPEN_AI")
 
 HOST = "localhost"
 USER = "root"

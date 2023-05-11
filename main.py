@@ -100,8 +100,6 @@ def message_handler(message):
                 s = open("log.txt", "a")
                 s.write(str(message.chat.id) + " - " + message.text + " - " + str(Actions.ACTION_REWRITE) + "\n")
                 s.close()
-
-
         else:
             bot.send_message(message.chat.id, "Неверный запрос")
 
