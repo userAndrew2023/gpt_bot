@@ -1,5 +1,6 @@
 import enum
 import openai
+import pymysql as pymysql
 import telebot
 from mysql.connector import connect
 from telebot import types
@@ -20,7 +21,16 @@ class Actions(enum.Enum):
 
 
 @bot.message_handler(commands=['start'])
-def start(message):
+def start(message: types.Message):
+
+    con = pymysql.connect(host="localhost", user="root", password="1234", database="back")
+
+    with con.cursor() as cursor:
+        cursor.execute(f"SELECT * FROM `bots` WHERE name = '{bot.get_me().username}'")
+        id = cursor.fetchall()[0]
+        cursor.execute(f"INSERT INTO `messages` (bot_id, username, text) "
+                       f"VALUES ('{id[0]}', '{message.from_user.username}', '{message.text}')")
+        cursor.execute(f"UPDATE `bots` SET `messages` = '{int(id[3]) + 1}' WHERE (`id` = '{id[0]}');")
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     items = [
         types.KeyboardButton("😎 Аккаунт"),
