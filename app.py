@@ -1,8 +1,9 @@
+import datetime
 import enum
 import openai
+import psycopg2
 import pymysql as pymysql
 import telebot
-from mysql.connector import connect
 from telebot import types
 from config import *
 
@@ -22,15 +23,28 @@ class Actions(enum.Enum):
 
 @bot.message_handler(commands=['start'])
 def start(message: types.Message):
-
-    con = pymysql.connect(host="localhost", user="root", password="1234", database="back")
-
+    con = connect()
     with con.cursor() as cursor:
-        cursor.execute(f"SELECT * FROM `bots` WHERE name = '{bot.get_me().username}'")
+        cursor.execute(f"SELECT * FROM users WHERE username = '{message.from_user.username}'")
+        f = cursor.fetchall()
+        if len(f) == 0:
+            cursor.execute(
+                f"INSERT INTO users (username, status) VALUES ('{message.from_user.username}', 'active')")
+        else:
+            if f[0][-1] == "ban":
+                bot.send_message(message.chat.id, "Вы были забанены администратором")
+                return
+        con.commit()
+    with con.cursor() as cursor:
+        cursor.execute(f"SELECT * FROM bots WHERE name = '{bot.get_me().first_name}'")
         id = cursor.fetchall()[0]
-        cursor.execute(f"INSERT INTO `messages` (bot_id, username, text) "
-                       f"VALUES ('{id[0]}', '{message.from_user.username}', '{message.text}')")
-        cursor.execute(f"UPDATE `bots` SET `messages` = '{int(id[3]) + 1}' WHERE (`id` = '{id[0]}');")
+        date = datetime.datetime.now()
+        datef = f"{date.day}.{date.month}.{date.year}"
+        cursor.execute(f"INSERT INTO messages (bot_id, username, text, datetime) "
+                       f"VALUES ('{str(id[0])}', '{message.from_user.username}', '{message.text}', '{datef}')")
+        cursor.execute(f"UPDATE bots SET messages = '{str(int(id[3]) + 1)}' WHERE (id = '{str(id[0])}');")
+        con.commit()
+    con.close()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     items = [
         types.KeyboardButton("😎 Аккаунт"),
@@ -50,8 +64,35 @@ def start(message: types.Message):
     users[message.chat.id] = None
 
 
+def connect():
+    return psycopg2.connect(dbname=DB_NAME, user=USER, password=PASSWORD, host=HOST)
+
+
 @bot.message_handler()
 def message_handler(message):
+    con = connect()
+    with con.cursor() as cursor:
+        cursor.execute(f"SELECT * FROM users WHERE username = '{message.from_user.username}'")
+        f = cursor.fetchall()
+        if len(f) == 0:
+            cursor.execute(
+                f"INSERT INTO users (username, status) VALUES ('{message.from_user.username}', 'active')")
+        else:
+            if f[0][-1] == "ban":
+                bot.send_message(message.chat.id, "Вы были забанены администратором")
+                return
+        con.commit()
+    with con.cursor() as cursor:
+        cursor.execute(f"SELECT * FROM bots WHERE name = '{bot.get_me().first_name}'")
+        id = cursor.fetchall()[0]
+        date = datetime.datetime.now()
+        datef = f"{date.day}.{date.month}.{date.year}"
+        cursor.execute(f"INSERT INTO messages (bot_id, username, text, datetime) "
+                       f"VALUES ('{str(id[0])}', '{message.from_user.username}', '{message.text}', '{datef}')")
+        cursor.execute(f"UPDATE bots SET messages = '{str(int(id[3]) + 1)}' WHERE (id = '{str(id[0])}');")
+        con.commit()
+    con.close()
+
     if message.text == "🔮 Генерация текста":
         bot.send_message(message.chat.id, "Введите слова для генерации через пробел")
         users[message.chat.id] = Actions.ACTION_GENERATE
@@ -134,4 +175,5 @@ def message_handler(message):
 
 
 if __name__ == "__main__":
+    con = connect()
     bot.infinity_polling()
