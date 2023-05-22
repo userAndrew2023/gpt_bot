@@ -141,12 +141,17 @@ def message_handler(message):
                 bot.send_message(message.chat.id, text="Ваш запрос обрабатывается. Ориентировочное время ответа"
                                                        " до 60 секунд")
                 messages = [{"role": "user", "content": f"Сгенерируй текст из слов: {message.text}"}]
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    max_tokens=1000,
-                    temperature=1.2,
-                    messages=messages
-                )
+                while True:
+                    try:
+                        response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            max_tokens=1000,
+                            temperature=1.2,
+                            messages=messages
+                        )
+                        break
+                    except Exception:
+                        pass
                 bot.send_message(chat_id=message.chat.id, text=response["choices"][0]['message']['content'])
                 s = open("log.txt", "a")
                 s.write(str(message.chat.id) + " - " + message.text + " - " + str(Actions.ACTION_REWRITE) + "\n")
@@ -160,12 +165,17 @@ def message_handler(message):
                                                        " до 60 секунд")
                 messages = [{"role": "user", "content": f"Перефразировать текст из слов и заменить синонимами: "
                                                         f"{message.text}"}]
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    max_tokens=1000,
-                    temperature=1.2,
-                    messages=messages
-                )
+                while True:
+                    try:
+                        response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            max_tokens=1000,
+                            temperature=1.2,
+                            messages=messages
+                        )
+                        break
+                    except Exception:
+                        pass
                 bot.send_message(chat_id=message.chat.id, text=response["choices"][0]['message']['content'])
                 s = open("log.txt", "a")
                 s.write(str(message.chat.id) + " - " + message.text + " - " + str(Actions.ACTION_REWRITE) + "\n")
